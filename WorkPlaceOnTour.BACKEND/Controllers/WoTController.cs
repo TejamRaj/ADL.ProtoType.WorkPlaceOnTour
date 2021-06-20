@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WorkPlaceOnTour.BACKEND.Entities;
 using WorkPlaceOnTour.BACKEND.Services;
 
 namespace WorkPlaceOnTour.BACKEND.Controllers
@@ -16,8 +17,8 @@ namespace WorkPlaceOnTour.BACKEND.Controllers
         private readonly IWorkplaceRepository workplaceRepository;
         private readonly IUserInfoService userInfoService;
 
-        public WoTController(IWoTRepository wotRepository, IWorkplaceRepository 
-            workplaceRepository,
+        public WoTController(IWoTRepository wotRepository,
+            IWorkplaceRepository workplaceRepository,
             IUserInfoService userInfoService)
         {
             this.wotRepository = wotRepository;
@@ -46,6 +47,39 @@ namespace WorkPlaceOnTour.BACKEND.Controllers
          //   }
 
             return Ok(toursDestinations);
+        }
+
+
+
+        public async Task<IActionResult> GetWorkPlaces(Guid TourId)
+        {
+
+            if (String.IsNullOrEmpty(TourId.ToString()))
+                this.NotFound();
+
+
+            IEnumerable<Workplace> workplaces = new List<Workplace>();
+
+            workplaces = await workplaceRepository.GetWorkPlacesByTourId(TourId);
+
+
+            return Ok(workplaces);
+
+        }
+
+
+        public async Task<IActionResult> AddTourDestination(TourDestination tourDestination)
+        {
+            if (tourDestination == null)
+                return BadRequest();
+
+            var newtourDestination = new TourDestination();
+
+
+            await wotRepository.AddTourDestination(newtourDestination);
+
+            return Ok();
+
         }
 
         
