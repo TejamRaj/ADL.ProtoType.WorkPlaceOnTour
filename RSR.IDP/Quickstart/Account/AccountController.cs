@@ -14,9 +14,12 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using RSR.IDP.Quickstart;
+using RSR.IDP.Services;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace IdentityServerHost.Quickstart.UI
 {
@@ -30,6 +33,7 @@ namespace IdentityServerHost.Quickstart.UI
     public class AccountController : Controller
     {
         private readonly TestUserStore _users;
+        private readonly ILocalUserService _localUserService;
         private readonly IIdentityServerInteractionService _interaction;
         private readonly IClientStore _clientStore;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
@@ -40,12 +44,13 @@ namespace IdentityServerHost.Quickstart.UI
             IClientStore clientStore,
             IAuthenticationSchemeProvider schemeProvider,
             IEventService events,
+            ILocalUserService localUserService,
             TestUserStore users = null)
         {
             // if the TestUserStore is not in DI, then we'll just use the global users collection
             // this is where you would plug in your own custom identity management library (e.g. ASP.NET Identity)
             _users = users ?? new TestUserStore(TestUsers.Users);
-
+            _localUserService = localUserService;
             _interaction = interaction;
             _clientStore = clientStore;
             _schemeProvider = schemeProvider;
@@ -57,9 +62,30 @@ namespace IdentityServerHost.Quickstart.UI
         /// </summary>
         [HttpGet]
         public async Task<IActionResult> Login(string returnUrl)
-        {
+       {
             // build a model so we know what to show on the login page
-            var vm = await BuildLoginViewModelAsync(returnUrl);
+
+
+            var urlpayload = HttpContext.Request.QueryString;
+
+            var userType = String.Empty;
+
+            if (urlpayload.Value.Contains(UserType.Organization.ToString()))
+            {
+                userType = UserType.Organization.ToString();
+            }
+
+            else if (urlpayload.Value.Contains("Workplace"))
+            {
+                userType= UserType.WorkplaceProvider.ToString();
+            }
+            else
+            {
+                userType = UserType.Individual.ToString();
+            }
+
+
+            var vm = await BuildLoginViewModelAsync(returnUrl, userType.ToString());
 
             if (vm.IsExternalLoginOnly)
             {
@@ -110,10 +136,12 @@ namespace IdentityServerHost.Quickstart.UI
             if (ModelState.IsValid)
             {
                 // validate username/password against in-memory store
-                if (_users.ValidateCredentials(model.Username, model.Password))
+                // if (_users.ValidateCredentials(model.Username, model.Password))
+                if ( await _localUserService.ValidateClearTextCredentialsAsync(
+                    model.Username, model.Password))
                 {
-                    var user = _users.FindByUsername(model.Username);
-                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.SubjectId, user.Username, clientId: context?.Client.ClientId));
+                    var user = await _localUserService.GetUserByUserNameAsync(model.Username);
+                    await _events.RaiseAsync(new UserLoginSuccessEvent(user.Username, user.Subject, user.Username, clientId: context?.Client.ClientId));
 
                     // only set explicit expiration here if user chooses "remember me". 
                     // otherwise we rely upon expiration configured in cookie middleware.
@@ -128,7 +156,7 @@ namespace IdentityServerHost.Quickstart.UI
                     };
 
                     // issue authentication cookie with subject ID and username
-                    var isuser = new IdentityServerUser(user.SubjectId)
+                    var isuser = new IdentityServerUser(user.Subject)
                     {
                         DisplayName = user.Username
                     };
@@ -237,7 +265,7 @@ namespace IdentityServerHost.Quickstart.UI
         /*****************************************/
         /* helper APIs for the AccountController */
         /*****************************************/
-        private async Task<LoginViewModel> BuildLoginViewModelAsync(string returnUrl)
+        private async Task<LoginViewModel> BuildLoginViewModelAsync(string returnUrl, string userType="Individual")
         {
             var context = await _interaction.GetAuthorizationContextAsync(returnUrl);
             if (context?.IdP != null && await _schemeProvider.GetSchemeAsync(context.IdP) != null)
@@ -250,6 +278,7 @@ namespace IdentityServerHost.Quickstart.UI
                     EnableLocalLogin = local,
                     ReturnUrl = returnUrl,
                     Username = context?.LoginHint,
+                    UserType=userType
                 };
 
                 if (!local)
@@ -291,7 +320,8 @@ namespace IdentityServerHost.Quickstart.UI
                 EnableLocalLogin = allowLocal && AccountOptions.AllowLocalLogin,
                 ReturnUrl = returnUrl,
                 Username = context?.LoginHint,
-                ExternalProviders = providers.ToArray()
+                ExternalProviders = providers.ToArray(),
+                UserType=userType
             };
         }
 

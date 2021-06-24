@@ -1,7 +1,11 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using RSR.IDP.DbContexts;
+using RSR.IDP.Services;
 
 namespace RSR.IDP
 {
@@ -9,6 +13,8 @@ namespace RSR.IDP
     {
         public IWebHostEnvironment Environment { get; }
 
+
+        public IConfiguration Configuration { get; }
         public Startup(IWebHostEnvironment environment)
         {
             Environment = environment;
@@ -20,6 +26,14 @@ namespace RSR.IDP
             opn.EnableEndpointRouting=false
             );
 
+
+            services.AddScoped<ILocalUserService, LocalUserService>();
+            services.AddDbContext<IdentityDbContext>(options =>
+            {
+                options.UseSqlServer("Server=(localdb)\\MSSQLLocalDB;Database=RsRIdentityDB;Trusted_Connection=True;");
+            });
+
+
             services.AddIdentityServer(isrvconfig =>
             {
                 isrvconfig.Events.RaiseErrorEvents = true;
@@ -30,8 +44,8 @@ namespace RSR.IDP
               .AddInMemoryIdentityResources(Config.GetIdentityResources())
               .AddInMemoryApiResources(Config.GetApiResources())
               .AddInMemoryApiScopes(Config.GetApiScopes())
-              .AddInMemoryClients(Config.GetClients())
-              .AddTestUsers(Config.GetUsers());
+              .AddInMemoryClients(Config.GetClients());
+              
                 
                 
                 
