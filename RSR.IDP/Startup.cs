@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RSR.IDP.DbContexts;
 using RSR.IDP.Services;
+using Microsoft.AspNetCore.Identity;
 
 namespace RSR.IDP
 {
@@ -27,6 +28,7 @@ namespace RSR.IDP
             );
 
 
+            services.AddScoped<IPasswordHasher<Entities.User>, PasswordHasher<Entities.User>>();
             services.AddScoped<ILocalUserService, LocalUserService>();
             services.AddDbContext<IdentityDbContext>(options =>
             {

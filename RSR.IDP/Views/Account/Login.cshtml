@@ -34,15 +34,23 @@
                             </div>
                             @if (Model.AllowRememberLogin)
                             {
-                                <div class="form-group">
-                                    <div class="form-check">
-                                        <input class="form-check-input" asp-for="RememberLogin">
-                                        <label class="form-check-label" asp-for="RememberLogin">
-                                            Remember My Login
-                                        </label>
-                                    </div>
-                                </div>
-                            }
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input class="form-check-input" asp-for="RememberLogin">
+                                <label class="form-check-label" asp-for="RememberLogin">
+                                    Remember My Login
+                                </label>
+                            </div>
+                        </div>}
+
+                            <div class="form-group">
+                                <a asp-action="RegisterUser"
+                                   asp-controller="UserRegistration"
+                                   asp-route-returnUrl="@Model.ReturnUrl">
+                                    Not registered yet?  Click here.
+                                </a>
+                            </div>
+
                             <button class="btn btn-primary" name="button" value="login">Login</button>
                             <button class="btn btn-secondary" name="button" value="cancel">Cancel</button>
                         </form>

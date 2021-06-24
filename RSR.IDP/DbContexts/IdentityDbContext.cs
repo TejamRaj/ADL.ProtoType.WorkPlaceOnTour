@@ -57,10 +57,10 @@ namespace RSR.IDP.DbContexts
                     Username = "WorkplaceProvider",
                     Active = true
                 });
-                
 
-                
- 
+
+
+
 
             modelBuilder.Entity<UserClaim>().HasData(
              new UserClaim()
@@ -101,6 +101,13 @@ namespace RSR.IDP.DbContexts
              new UserClaim()
              {
                  Id = Guid.NewGuid(),
+                 UserId = new Guid("13229d33-99e0-41b3-b18d-4f72127e3971"),
+                 Type = "role",
+                 Value = "Individual"
+             },
+             new UserClaim()
+             {
+                 Id = Guid.NewGuid(),
                  UserId = new Guid("96053525-f4a5-47ee-855e-0ea77fa6c55a"),
                  Type = "given_name",
                  Value = "RedSoilRock"
@@ -133,6 +140,13 @@ namespace RSR.IDP.DbContexts
                  Type = "country",
                  Value = "India"
              },
+             new UserClaim()
+             {
+                 Id = Guid.NewGuid(),
+                 UserId = new Guid("96053525-f4a5-47ee-855e-0ea77fa6c55a"),
+                 Type = "role",
+                 Value = "Orgnization"
+             },
               new UserClaim()
               {
                   Id = Guid.NewGuid(),
@@ -160,7 +174,14 @@ namespace RSR.IDP.DbContexts
                  UserId = new Guid("c7d1b5e8-ae26-41f7-90f8-4726bd722412"),
                  Type = "subscriptionlevel",
                  Value = "AffilatedWorkplaceProvider"
-             });
+             },
+             new UserClaim()
+             {
+                 Id = Guid.NewGuid(),
+                 UserId = new Guid("c7d1b5e8-ae26-41f7-90f8-4726bd722412"),
+                 Type = "role",
+                 Value = "WorkplaceProvider"
+             }); ;
 
         }
 

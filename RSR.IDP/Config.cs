@@ -117,7 +117,10 @@ namespace RSR.IDP
                         IdentityServerConstants.StandardScopes.OpenId,
                         IdentityServerConstants.StandardScopes.Profile,
                         "roles",
-                        "workplaceontourapi"
+                        "workplaceontourapi",
+                        "role",
+                        "country"
+                        
                     }
                 }
             };
